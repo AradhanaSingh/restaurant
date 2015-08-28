@@ -19,11 +19,10 @@ class webserverHandler(BaseHTTPRequestHandler):
 				self.end_headers()
 
 				output = ""
-				output += "<html><body>Hello!"			
-				output += "</body></html>"
-                
+                # added html form
+				output += "<html><body>Hello<form method='POST' enctype='multipart/form-data' action='/hello'> <h2>What would you like me to say?</h2><input name='message' type='text'><input type='submit' value='Submit'></form> " 
+				output += "</body></html>"     
 				self.wfile.write(output)
-				print output
 				return
 
 			if self.path.endswith("/hola"):
@@ -33,14 +32,42 @@ class webserverHandler(BaseHTTPRequestHandler):
 				self.end_headers()
 
 				output = ""
-				output += "<html><body>&#161Hola <a href='/hello'>Back to Hello</a>"
-				
+                # added html form
+				output += "<html><body>&#161Hola <a href='/hello'>Back to Hello</a><form method='POST' enctype='multipart/form-data' action='/hello'> <h2>What would you like me to say?</h2><input name='message' type='text'><input type='submit' value='Submit'></form> "
+            
 				# wfile method sends the response back to the client 
 				self.wfile.write(output)
 				print output
 				return
 		except IOError:
 			self.send_error(404, "File not found %s" % self.path)
+            
+            
+        def do_POST(self):
+            try:
+                self.send_response(301)
+                self.end_headers()
+                
+                # cgi.parse_header method parses html form header into a main value and dictionary of parameters  
+                ctype, pdict = cgi.parse_header(self.headers.getheader('content-type'))
+                
+                # to check if form data is being received
+                if ctype == 'multipart/form-data':
+                    # fields would store all the data in the form
+                    fields = cgi.parse_multipart(self.rfile, pdict)
+                    # get the value/values for a specific field named "message", will call the field "message when HTML form will be created"
+                    messagecontent = fields.get('message')
+                    
+                    # we have parsed the data given by the user
+                    output = ""
+                    output += "<html><body>"
+                    output += "<h2> Okay, how about this: </h2>"
+                    output += "<h1> %s </h1>" % messagecontent[0]
+                    output += "</html></body>"
+                    self.wfile.write(output)
+                
+            except Exception as e:
+                print e
 
 			
 def main():
@@ -55,8 +82,8 @@ def main():
 		server.serve_forever()
 
 	except Exception as e:
-		print "^C entered, stopping the web server"
 		server.socket.close()
+		print "^C entered, stopping the web server"
 
 if __name__ == "__main__":
 	main()

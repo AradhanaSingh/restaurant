@@ -7,7 +7,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 # importing classes 
-from database_setup import Restaurant, Base, MenuItem
+from databasesetup import Restaurant, Base, MenuItem
 
 # let program know which database engine we would like to communicate with
 engine = create_engine('sqlite:///restaurantmenu.db')

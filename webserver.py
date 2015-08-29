@@ -8,6 +8,18 @@ import cgi
 # in main will instantaite the server and which port it will listen on
 # handler code will determine which code to excecute based on the request sent to the server
 
+# libraries to perform crud operations 
+from databasesetup import Base, Restaurant, MenuItem
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+
+# Create session and connect to DB
+engine = create_engine('sqlite:///restaurantmenu.db')
+Base.metadata.bind = engine
+DBSession = sessionmaker(bind = engine)
+session = DBSession()
+
+
 class webserverHandler(BaseHTTPRequestHandler):
 	# overrides do_GET method
 	def do_GET(self):
@@ -39,8 +51,26 @@ class webserverHandler(BaseHTTPRequestHandler):
 				self.wfile.write(output)
 				print output
 				return
+            
 		except IOError:
 			self.send_error(404, "File not found %s" % self.path)
+            
+			if self.path.endswith("/restaurants"):
+				self.send_response(200)
+				self.send_header('Content-type', 'text/html')
+				# sends a blank line and marks the end of the header
+				self.end_headers()
+
+				output = ""
+                output = "<html><body>"
+                restaurants = session.query(Restaurant).all()
+                for restaurant in restaurants:
+                    output += restaurant.name
+                    output += "<br>"
+                output += "</html></body>"
+                self.wfile.write(output)
+                print output
+                return
             
             
         def do_POST(self):
@@ -65,7 +95,6 @@ class webserverHandler(BaseHTTPRequestHandler):
                     output += "<h1> %s </h1>" % messagecontent[0]
                     output += "</html></body>"
                     self.wfile.write(output)
-                
             except Exception as e:
                 print e
 

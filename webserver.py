@@ -88,6 +88,24 @@ class webserverHandler(BaseHTTPRequestHandler):
                     self.wfile.write(output)
                     return
 
+            if self.path.endswith("/delete"):
+                restaurantIDPath = self.path.split("/")[2]
+                myRestaurantQuery = session.query(Restaurant).filter_by(id = restaurantIDPath).one()
+                self.send_response(200)
+                self.send_header('Content-type','text-html')
+                self.end_headers()
+                output = ""
+                output += "<html><body>"
+                output += "<h1>"
+                output += myRestaurantQuery.name
+                output += "</h1>"
+                output += "<form method = 'POST' enctype='multipart/form-data' action ='/restaurants/%s/delete'>" %restaurantIDPath
+                output += "<input type='submit' value='Delete'>"
+                output += "</form>"
+                output += "</html></body>"
+                self.wfile.write(output)
+                return
+
             if self.path.endswith("/restaurants"):
                 self.send_response(200)
                 self.send_header('Content-type', 'text/html')
@@ -96,14 +114,14 @@ class webserverHandler(BaseHTTPRequestHandler):
                 output = ""
                 output = "<html><body>"
                 # restaurant id
-                output += "<a href='/restaurants/new'>Make a new restaurant</a><br>"
+                output += "<a href='/restaurants/new'>Make a new restaurant</a><br><br>"
                 restaurants = session.query(Restaurant).all()
                 for restaurant in restaurants:
                     output += restaurant.name
                     output += "<br>"
                     output += "<a href='/restaurants/%s/edit'>Edit</a>" %restaurant.id
                     output += "<br>"
-                    output += "<a href='#'>Delete</a>"
+                    output += "<a href='/restaurants/%s/delete'>Delete</a>" %restaurant.id
                     output += "<br>"
                     output += "<br>"
                 output += "</html></body>"
@@ -171,6 +189,24 @@ class webserverHandler(BaseHTTPRequestHandler):
                     # added a redirect to get back to restaurants page
                     self.send_header('Location', '/restaurants')
                     self.end_headers()
+                return
+
+            if self.path.endswith("/delete"):
+                ctype, pdict = cgi.parse_header(self.headers.getheader('content-type'))
+                if ctype == 'multipart/form-data':
+                    fields = cgi.parse_multipart(self.rfile, pdict)
+                    restaurantIDPath = self.path.split("/")[2]
+                    myRestaurantQuery = session.query(Restaurant).filter_by( id = restaurantIDPath).one()
+                    if myRestaurantQuery != [] :
+                        session.delete(myRestaurantQuery)
+                        session.commit()
+                    self.send_response(301)
+                    self.send_header('Content-type', 'text-html')
+                    # added a redirect to get back to restaurants page
+                    self.send_header('Location', '/restaurants')
+                    self.end_headers()
+
+
                 return
         except Exception as e:
             print e

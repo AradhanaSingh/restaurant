@@ -1,4 +1,4 @@
-Restaurant web service using internal libraries(HTTP Base Server) and external libraries like  SQL Alchemy available on local host port 8080
+Restaurant web service using internal libraries(HTTP Base Server) and external libraries like  SQL Alchemy in python available on local host port 8080
 
 Webserver runs on virtual machine installed using Vagrant
 
